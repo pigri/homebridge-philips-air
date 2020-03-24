@@ -130,7 +130,6 @@ philipsAir.prototype.fetchData = function (accessory, endpoint) {
 
 philipsAir.prototype.setData = function (accessory, values) {
     var encrypt = this.encrypt(JSON.stringify(values), accessory.context.key);
-    console.log(values);
 
     fetch('http://' + accessory.context.ip + '/di/v1/products/1/air', {
         method: 'PUT',
@@ -208,6 +207,11 @@ philipsAir.prototype.fetchStatus = function (accessory) {
         accessory.context.status.mode = !(accessory.context.status.mode == 'M');
         accessory.context.status.iaql = Math.ceil(accessory.context.status.iaql / 3);
         accessory.context.status.status = accessory.context.status.pwr * 2;
+        if (accessory.context.status.pwr == '1') {
+            accessory.context.status.uil == 1;
+        } else {
+            accessory.context.status.uil == 0;
+        }
 
         if (accessory.context.status.pwr == '1' && !accessory.context.status.mode) {
             if (accessory.context.status.om == 't') {
@@ -239,7 +243,7 @@ philipsAir.prototype.updateStatus = function (accessory) {
             .updateCharacteristic(Characteristic.PM2_5Density, status.pm25);
 
         accessory.getService(Service.Lightbulb)
-            .updateCharacteristic(Characteristic.Active, status.uil)
+            .updateCharacteristic(Characteristic.On, status.uil)
             .updateCharacteristic(Characteristic.Brightness, status.aqil);
 
     } catch (err) {
@@ -255,8 +259,6 @@ philipsAir.prototype.setPower = function (accessory, state, callback) {
 
         this.setData(accessory, values);
 
-        console.log(accessory.context.status.uil);
-
         accessory.getService(Service.AirPurifier)
             .updateCharacteristic(Characteristic.CurrentAirPurifierState, state * 2);
 
@@ -271,7 +273,11 @@ philipsAir.prototype.setOn = function (accessory, state, callback) {
         var values = {}
         values['uil'] = state.toString();
 
-        console.log("setOn: " + state);
+        if (values['uil'] === "true") {
+            values['uil'] = "1";
+        } else {
+            values['uil'] = "0";
+        }
 
         this.setData(accessory, values);
 
@@ -285,7 +291,6 @@ philipsAir.prototype.setBrightness = function (accessory, state, callback) {
     try {
         var values = {}
         values['aqil'] = state;
-        console.log("setBrightness: " + state);
 
         this.setData(accessory, values);
 
@@ -470,7 +475,7 @@ philipsAir.prototype.setService = function (accessory) {
 
 
     accessory.getService(Service.Lightbulb)
-        .getCharacteristic(Characteristic.Active)
+        .getCharacteristic(Characteristic.On)
         .on('set', this.setOn.bind(this, accessory))
         .on('get', callback => {
             try {
