@@ -238,13 +238,13 @@ philipsAir.prototype.updateStatus = function (accessory) {
             .updateCharacteristic(Characteristic.LockPhysicalControls, status.cl)
             .updateCharacteristic(Characteristic.RotationSpeed, status.om);
 
-        accessory.getService(Service.AirQualitySensor)
-            .updateCharacteristic(Characteristic.AirQuality, status.iaql)
-            .updateCharacteristic(Characteristic.PM2_5Density, status.pm25);
-
         accessory.getService(Service.Lightbulb)
             .updateCharacteristic(Characteristic.On, status.uil)
             .updateCharacteristic(Characteristic.Brightness, status.aqil);
+
+        accessory.getService(Service.AirQualitySensor)
+            .updateCharacteristic(Characteristic.AirQuality, status.iaql)
+            .updateCharacteristic(Characteristic.PM2_5Density, status.pm25);
 
     } catch (err) {
         this.log("Unable to load status info: " + err);
